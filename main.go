@@ -8,48 +8,51 @@ import (
 )
 
 func main() {
-	actorName := "Лабубу"
-	actorHealth := 230
-	actorDamage := 16
+	actor := Character{
+		Name:   "Лабубу",
+		Health: 230,
+		Damage: 16,
+	}
 
-	enemyNames := []string{"Рыцарь", "Боец", "Убийца"}
-	enemyHealths := []int{330, 200, 150}
-	enemyDamages := []int{10, 18, 25}
+	game := GameService{
+		Enemies: []*Character{
+			{Name: "Рыцарь", Health: 330, Damage: 10},
+			{Name: "Боец", Health: 200, Damage: 18},
+			{Name: "Убийца", Health: 150, Damage: 25},
+		},
+		Scanner: bufio.NewScanner(os.Stdin),
+	}
 
-	enemyID := rand.Intn(len(enemyNames))
-	enemyName := enemyNames[enemyID]
-	enemyHealth := enemyHealths[enemyID]
-	enemyDamage := enemyDamages[enemyID]
+	enemyID := rand.Intn(len(game.Enemies))
+	enemy := game.Enemies[enemyID]
 
-	fmt.Printf("\n%s, добро пожаловать в игру Duel!\n", actorName)
+	fmt.Printf("\n%s, добро пожаловать в игру Duel!\n", actor.Name)
 
-	fmt.Printf("\n%s, твой соперник: %s\n\n", actorName, enemyName)
-
-	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Printf("\n%s, твой соперник: %s\n\n", actor.Name, enemy.Name)
 
 	var isPlaying bool = true
 	for isPlaying {
-		fmt.Printf("Твое здоровье: %d, твоя атака: %d\n", actorHealth, actorDamage)
-		fmt.Printf("Здоровье противника: %d, атака противника: %d\n", enemyHealth, enemyDamage)
+		fmt.Printf("Твое здоровье: %d, твоя атака: %d\n", actor.Health, actor.Damage)
+		fmt.Printf("Здоровье противника: %d, атака противника: %d\n", enemy.Health, enemy.Damage)
 
 		fmt.Print("\nВыберите действие:\n1 - атаковать\n")
-		scanner.Scan()
-		action := scanner.Text()
+		game.Scanner.Scan()
+		action := game.Scanner.Text()
 
 		switch action {
 		case "1":
-			enemyHealth -= actorDamage
-			if enemyHealth < 0 {
-				enemyHealth = 0
+			enemy.Health -= actor.Damage
+			if enemy.Health < 0 {
+				enemy.Health = 0
 			}
-			fmt.Printf("Ты нанес %d урона противнику\n", actorDamage)
+			fmt.Printf("Ты нанес %d урона противнику\n", actor.Damage)
 
-			if enemyHealth > 0 {
-				actorHealth -= enemyDamage
-				if actorHealth < 0 {
-					actorHealth = 0
+			if enemy.Health > 0 {
+				actor.Health -= enemy.Damage
+				if actor.Health < 0 {
+					actor.Health = 0
 				}
-				fmt.Printf("Тебе нанесено %d урона\n", enemyDamage)
+				fmt.Printf("Тебе нанесено %d урона\n", enemy.Damage)
 			}
 		default:
 			fmt.Println("Неверный ввод. Выберите 1 (атаковать).")
@@ -58,38 +61,32 @@ func main() {
 
 		fmt.Println()
 
-		actorDied := actorHealth <= 0
-		enemyDied := enemyHealth <= 0
+		actorDied := actor.Health <= 0
+		enemyDied := enemy.Health <= 0
 
 		if actorDied && enemyDied {
 			fmt.Println("Ничья")
 			isPlaying = false
 		} else if enemyDied {
-			fmt.Printf("Победа! Ты победил %s\n\n", enemyName)
-			enemyNames[enemyID], enemyNames[len(enemyNames)-1] = enemyNames[len(enemyNames)-1], enemyNames[enemyID]
-			enemyHealths[enemyID], enemyHealths[len(enemyHealths)-1] = enemyHealths[len(enemyHealths)-1], enemyHealths[enemyID]
-			enemyDamages[enemyID], enemyDamages[len(enemyDamages)-1] = enemyDamages[len(enemyDamages)-1], enemyDamages[enemyID]
+			fmt.Printf("Победа! Ты победил %s\n\n", enemy.Name)
+			game.Enemies[enemyID], game.Enemies[len(game.Enemies)-1] = game.Enemies[len(game.Enemies)-1], game.Enemies[enemyID]
 
-			enemyNames = enemyNames[:len(enemyNames)-1]
-			enemyHealths = enemyHealths[:len(enemyHealths)-1]
-			enemyDamages = enemyDamages[:len(enemyDamages)-1]
+			game.Enemies = game.Enemies[:len(game.Enemies)-1]
 
-			if len(enemyNames) == 0 {
-				fmt.Printf("%s, поздравляем! Ты победил всех врагов!\n\n", actorName)
+			if len(game.Enemies) == 0 {
+				fmt.Printf("%s, поздравляем! Ты победил всех врагов!\n\n", actor.Name)
 				isPlaying = false
 			} else {
-				enemyID = rand.Intn(len(enemyNames))
-				enemyName = enemyNames[enemyID]
-				enemyHealth = enemyHealths[enemyID]
-				enemyDamage = enemyDamages[enemyID]
-				fmt.Printf("%s, твой следующий соперник: %s\n\n", actorName, enemyName)
+				enemyID = rand.Intn(len(game.Enemies))
+				enemy = game.Enemies[enemyID]
+				fmt.Printf("%s, твой следующий соперник: %s\n\n", actor.Name, enemy.Name)
 			}
 		} else if actorDied {
-			fmt.Printf("%s, к сожалению, ты проиграл :(\n\n", actorName)
+			fmt.Printf("%s, к сожалению, ты проиграл :(\n\n", actor.Name)
 			isPlaying = false
 		}
 	}
 
 	fmt.Printf("*нажать клавишу Enter для выхода")
-	scanner.Scan()
+	game.Scanner.Scan()
 }
