@@ -50,10 +50,10 @@ func (g *GameService) Run() {
 
 		fmt.Println()
 
-		//✍ Заменяем прямую проверку на вызов метода
+		// Проверка окончания игры
 		battleResult := g.checkBattleResult(actor, enemy)
 		switch battleResult {
-		case "Победа":
+		case BattleResultWin:
 			fmt.Printf("%s! Ты победил %s\n\n", actor.Name, enemy.Name)
 			g.Enemies[enemyID], g.Enemies[len(g.Enemies)-1] = g.Enemies[len(g.Enemies)-1], g.Enemies[enemyID]
 			g.Enemies = g.Enemies[:len(g.Enemies)-1]
@@ -66,10 +66,10 @@ func (g *GameService) Run() {
 				enemy = g.Enemies[enemyID]
 				fmt.Printf("%s, твой следующий соперник: %s\n\n", actor.Name, enemy.Name)
 			}
-		case "Поражение":
+		case BattleResultLose:
 			fmt.Printf("%s, к сожалению, ты проиграл :(\n\n", actor.Name)
 			isPlaying = false
-		case "Ничья":
+		case BattleResultDraw:
 			fmt.Println("Ничья")
 			isPlaying = false
 		}
@@ -110,19 +110,19 @@ func (g *GameService) processAction(action string, actor *Character, enemy *Char
 	return true
 }
 
-func (g *GameService) checkBattleResult(actor *Character, enemy *Character) string {
+func (g *GameService) checkBattleResult(actor *Character, enemy *Character) BattleResultEnum {
 	actorDied := actor.IsDied()
 	enemyDied := enemy.IsDied()
 
 	if actorDied && enemyDied {
-		return "Ничья"
+		return BattleResultDraw
 	}
 	if enemyDied {
-		return "Победа"
+		return BattleResultWin
 	}
 	if actorDied {
-		return "Поражение"
+		return BattleResultLose
 	}
 
-	return "Unknown"
+	return BattleResultUnknown
 }
