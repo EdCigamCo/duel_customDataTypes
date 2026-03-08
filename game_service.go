@@ -30,8 +30,8 @@ func (g *GameService) Run() {
 	enemyID := rand.Intn(len(g.Enemies))
 	enemy := g.Enemies[enemyID]
 
-	//✅ Создаем пользователя через конструктор
-	actor := NewCharacter("Лабубу", 230, 16)
+	//✍ Создаем пользователя как Actor вместо Character
+	actor := NewActor("Лабубу", 230, 16, 25) //✍ Заменяем NewCharacter на NewActor, добавляем параметр брони (25)
 
 	fmt.Printf("\n%s, добро пожаловать в игру Duel!\n", actor.Name)
 
@@ -79,38 +79,59 @@ func (g *GameService) Run() {
 	g.Scanner.Scan()
 }
 
-func (g *GameService) printStatus(actor *Character, enemy *Character) {
-	fmt.Printf("Твое здоровье: %d, твоя атака: %d\n", actor.Health, actor.Damage)
+// ✍ Изменяем тип параметра actor с *Character на *Actor
+func (g *GameService) printStatus(actor *Actor, enemy *Character) {
+	fmt.Printf("Твое здоровье: %d, твоя атака: %d, твоя броня: %d\n", actor.Health, actor.Damage, actor.Armor) //✍ Добавляем вывод брони
 	fmt.Printf("Здоровье противника: %d, атака противника: %d\n", enemy.Health, enemy.Damage)
 }
 
 func (g *GameService) getUserAction() string {
-	fmt.Print("\nВыберите действие:\n1 - атаковать\n")
+	fmt.Print("\nВыберите действие:\n1 - увеличить здоровье\n2 - атаковать\n") // ✍ Добавляем новое действие "1 - увеличить здоровье"
 	g.Scanner.Scan()
 	return g.Scanner.Text()
 }
 
-func (g *GameService) processAction(action string, actor *Character, enemy *Character) bool {
+// processAction обрабатывает выбранное действие
+func (g *GameService) processAction(action string, actor *Actor, enemy *Character) bool {
 	switch action {
-	case "1":
+	case "1": //✍ Изменяем обработку действия "1" - теперь это восстановление здоровья
+		restoreHealth, wasRestored := actor.Heal() //✅ Вызываем метод Heal() из Actor
+		if wasRestored {
+			fmt.Printf("Ты восстановил %d здоровья\n", restoreHealth)
+		} else {
+			fmt.Println("Невозможно восстановить здоровье")
+		}
+
+		//✅ Враг атакует в ответ при восстановлении здоровья
+		enemyAttack := enemy.Damage
+		reductionDamage := actor.CalculateReductionDamage(enemyAttack) //✅ Вычисляем урон с учетом брони
+
+		actor.TakeDamage(enemyAttack) //✅ Применяем урон (метод Actor учитывает броню)
+		fmt.Printf("Тебе нанесено %d урона, броня защитила, здоровье уменьшилось на %d\n", enemyAttack, reductionDamage)
+	case "2": //✍ Изменяем номер действия атаки с "1" на "2"
+		// Пользователь атакует врага
 		enemyDamage := actor.Damage
 		enemy.TakeDamage(enemyDamage)
 		fmt.Printf("Ты нанес %d урона противнику\n", enemyDamage)
 
+		// Враг атакует в ответ, если не умер
 		if !enemy.IsDied() {
 			enemyAttack := enemy.Damage
-			actor.TakeDamage(enemyAttack)
-			fmt.Printf("Тебе нанесено %d урона\n", enemyAttack)
+			reductionDamage := actor.CalculateReductionDamage(enemyAttack) //✍ Добавляем вычисление урона с учетом брони
+
+			actor.TakeDamage(enemyAttack)                                                                                    //✅ Применяем урон (метод Actor учитывает броню)
+			fmt.Printf("Тебе нанесено %d урона, броня защитила, здоровье уменьшилось на %d\n", enemyAttack, reductionDamage) //✍ Обновляем сообщение для отображения информации о броне
 		}
 	default:
-		fmt.Println("Неверный ввод. Выберите 1 (атаковать).")
+		fmt.Println("Неверный ввод. Выберите 1 или 2.") //✍ Обновляем сообщение об ошибке
 		return false
 	}
 
 	return true
 }
 
-func (g *GameService) checkBattleResult(actor *Character, enemy *Character) BattleResultEnum {
+// ✍ Изменяем тип параметра actor с *Character на *Actor
+func (g *GameService) checkBattleResult(actor *Actor, enemy *Character) BattleResultEnum {
 	actorDied := actor.IsDied()
 	enemyDied := enemy.IsDied()
 
