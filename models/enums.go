@@ -1,9 +1,7 @@
-package main
+package models //✍ Меняем объявление пакета на models
 
-// ✅ Создаем type alias для string - это будет наш enum-подобный тип
 type BattleResultEnum = string
 
-// ✅ Объявляем константы для возможных результатов боя
 const (
 	BattleResultUnknown BattleResultEnum = "Unknown"
 	BattleResultWin     BattleResultEnum = "Победа"

@@ -1,6 +1,9 @@
 package main
 
+import "duel/services" //✅ Добавляем импорт пакета services
+
 func main() {
-	game := NewGameService()
+	//✍ Вызываем конструктор структуры GameService из пакета services
+	game := services.NewGameService()
 	game.Run()
 }
